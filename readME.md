@@ -1,0 +1,1 @@
+This project is an advanced URL shortner backend that is able to anlyze click rates, allow custom links,  provide protected links and also provide qr codes.
