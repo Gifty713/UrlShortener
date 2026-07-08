@@ -2,7 +2,7 @@
   "name": "urlshortener",
   "version": "1.0.0",
   "main": "index.js",
-  "type":"module",
+  "type": "module",
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js"
@@ -12,9 +12,11 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "bcrypt": "^6.0.0",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "mongoose": "^9.7.4",
+    "nanoid": "^5.1.16",
     "nodemon": "^3.1.14",
     "path": "^0.12.7"
   }
