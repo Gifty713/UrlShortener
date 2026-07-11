@@ -20,6 +20,9 @@ const urlSchema = new Schema({
         required: true,
         unique: true
     },
+    isQrcode :{
+        type:Boolean
+    },
     clickCount:{
         type: Number,
         default: 0
@@ -27,21 +30,23 @@ const urlSchema = new Schema({
 },
 {timestamps:true}
 )
+// Index to  delete database if expiry date.
+urlSchema.index(
+    {expiryDate: 1}, {expireAfterSeconds:0, partialFilterExpression:{$type: "date"}}
+)
 
 // Hashing the password before saving
-// urlSchema.pre("save", async()=>{
-//     if(!this.password) return;
-//     if (this.isModified("password")){
-//         this.password = await bcrypt.hash(this.password, 10);
-//     };
-// })
+urlSchema.pre("save", async function(){
+    if(!this.isModified("password")) return;
+    this.password = await bcrypt.hash(this.password, 10);
+})
 
 
-// // Defined function to compare password
-// urlSchema.methods.comparePassword = async(pwd)=>{
-//     if (!this.password) return
-//     return await bcrypt.compare(pwd, this.password);
-// }
+// Defined function to compare password
+urlSchema.methods.comparePassword = async function (pwd){
+    if (!this.password) return
+    return await bcrypt.compare(pwd, this.password);
+}
 
 export const Url = mongoose.model("url", urlSchema);
 

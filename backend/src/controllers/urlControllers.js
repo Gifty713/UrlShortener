@@ -1,10 +1,11 @@
 import { Url } from "../models/urlModel.js";
 import urlRouter from "../routes/urlRoutes.js";
 import { nanoid } from "nanoid";
+import qrcode from "qrcode";
 
 const createAlias =async (req, res)=>{
     try {
-        const {originalURL,password,expiryDate, qrcode} = req.body;
+        const {originalURL,customAlias,password,expiryDate, isQrcode} = req.body;
 
         // Validation for url
         if (!originalURL){
@@ -47,8 +48,24 @@ const createAlias =async (req, res)=>{
             return(res.status(429).json({message:`Too many exact request, limit caps at 3 aliases for each URL. Those 3 aliases url are ${container}.`}))
         }
 
+        // Custom Alias Verification 
+        let verCustomAlias = null;
+        if(customAlias){
+            const trimmedCustom = customAlias.trim();
+            // not more than 7 strings
+            if (trimmedCustom.length > 7){
+                return(res.status(400).json({message:"Custom Alias must not be more than 7."}));
+            }
+            // Checking if custom is taken and setting verified custom alias
+            const existingBeforeCustom = await Url.findOne({alias:trimmedCustom});
+            if (existingBeforeCustom){
+                return(res.status(409).json({message:"Oops, this alias has been taken."}));
+            }
+            verCustomAlias = trimmedCustom;
+        };
+
         // Create Alias
-        const alias = nanoid(5);
+        const alias = verCustomAlias || nanoid(5);
         // check if alias is taken
         let existing = await Url.findOne({alias: alias});
         while (existing){
@@ -57,21 +74,22 @@ const createAlias =async (req, res)=>{
         }
 
         // Create qrcode
-        // if(qrcode){
-        //     const fakeqr = nanoid(10);
-        // }
-
+        let qrData = "No qrcode requested";
+        if(isQrcode){
+            qrData = await qrcode.toDataURL(originalURL);
+        }
         // create record
         const url = await Url.create({
             originalURL: formattedUrl,
             alias,
-            expiryDate
+            expiryDate, 
+            password
         })
 
-        res.status(201).json({message:`Url successfully registered, here is your shortened url www.${alias}.ping`})
+        res.status(201).json({message:`Url successfully registered, here is your shortened url /${alias}`, url, qrData})
            
     } catch (error) {
-        res.status(500).json({message:"Internal server error.", error:error.message})
+        res.status(500).json({message:"Internal server error.", error:error.message});
     }    
 }
 
@@ -82,11 +100,30 @@ const redirectUrl= async(req, res)=>{
         if(!url){
             return(res.status(404).json({message:"This alias was not found on our database."}));
         }
+        // check if password protected and redirect to password page.
+        const PasswordProtected = url.password;
+        if (PasswordProtected){
+            return(res.status(401).json({message:"Page is password protected."}));
+        }
         res.redirect(`${url.originalURL}`);
     } catch (err) {
         res.status(500).json({message:"Internal server error.", error:err});
     }
 }
 
-export {createAlias, redirectUrl};
+const passwordRedirect =async(req, res)=>{
+    try {
+        const {password} = req.body;
+        const url = await Url.findOne({alias: req.params.alias});
+        // Compare the passwords
+        const isMatch = url.comparePassword(password);
+        if (!isMatch){
+            return(res.status(401).json({message:"Incorrect password."}));
+        }
+        res.redirect(`${url.originalURL}`);
+    } catch (error) {
+        res.status(500).json({message:"Internal Server Error."});
+    }   
+}
+export {createAlias, redirectUrl, passwordRedirect};
 
