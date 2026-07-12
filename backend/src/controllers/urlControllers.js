@@ -83,7 +83,8 @@ const createAlias =async (req, res)=>{
             originalURL: formattedUrl,
             alias,
             expiryDate, 
-            password
+            password,
+            clickCount: 0
         })
 
         res.status(201).json({message:`Url successfully registered, here is your shortened url /${alias}`, url, qrData})
@@ -105,9 +106,10 @@ const redirectUrl= async(req, res)=>{
         if (PasswordProtected){
             return(res.status(401).json({message:"Page is password protected."}));
         }
+        await Url.findOneAndUpdate({alias:req.params.alias}, {$inc:{clickCount: 1}}, {new:true});
         res.redirect(`${url.originalURL}`);
     } catch (err) {
-        res.status(500).json({message:"Internal server error.", error:err});
+        res.status(500).json({message:"Internal server error.", error:err.message});
     }
 }
 
@@ -115,15 +117,16 @@ const passwordRedirect =async(req, res)=>{
     try {
         const {password} = req.body;
         const url = await Url.findOne({alias: req.params.alias});
+
         // Compare the passwords
-        const isMatch = url.comparePassword(password);
+        const isMatch = await url.comparePassword(password);
         if (!isMatch){
             return(res.status(401).json({message:"Incorrect password."}));
         }
+        await Url.findOneAndUpdate({alias:req.params.alias},{$inc:{clickCount:1}}, {new:true});
         res.redirect(`${url.originalURL}`);
-    } catch (error) {
-        res.status(500).json({message:"Internal Server Error."});
+    } catch (err) {
+        res.status(500).json({message:"Internal Server Error.", error:err.message});
     }   
 }
 export {createAlias, redirectUrl, passwordRedirect};
-

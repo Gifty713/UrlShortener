@@ -23,6 +23,7 @@ const urlSchema = new Schema({
     isQrcode :{
         type:Boolean
     },
+    // clickCount is total clickCount
     clickCount:{
         type: Number,
         default: 0
@@ -36,7 +37,8 @@ urlSchema.index(
 )
 
 // Hashing the password before saving
-urlSchema.pre("save", async function(){
+urlSchema.pre("save", async function(){;
+    if (!this.password) return;
     if(!this.isModified("password")) return;
     this.password = await bcrypt.hash(this.password, 10);
 })
@@ -44,13 +46,8 @@ urlSchema.pre("save", async function(){
 
 // Defined function to compare password
 urlSchema.methods.comparePassword = async function (pwd){
-    if (!this.password) return
+    if (!this.password) return;
     return await bcrypt.compare(pwd, this.password);
 }
 
 export const Url = mongoose.model("url", urlSchema);
-
-
-//   qrCode:{
-//         type: String,
-//     }, 
