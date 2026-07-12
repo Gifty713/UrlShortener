@@ -1,16 +1,24 @@
-const clickRateModel = new Schema({
+import mongoose, {Schema} from "mongoose"
+
+const clickAnalysisSchema = new Schema({
+    optIn:{
+        type: Boolean,
+        default: false
+    },
+    userId:{
+        type: String
+    },
     ip: {
         type: String,
-        required: true
     },
     device:{
         type: String,
-        required: true
     },
     country:{
         type: String,
-        required: true
     }
 },
 {timestamps: true}
 )
+
+export const ClickAnalysis = mongoose.model("clickAnalysis", clickAnalysisSchema);

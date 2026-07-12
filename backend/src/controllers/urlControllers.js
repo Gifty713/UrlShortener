@@ -117,6 +117,9 @@ const passwordRedirect =async(req, res)=>{
     try {
         const {password} = req.body;
         const url = await Url.findOne({alias: req.params.alias});
+        if(!url){
+            return(res.status(404).json({message:"This alias was not found on our database."}))
+        }
 
         // Compare the passwords
         const isMatch = await url.comparePassword(password);
