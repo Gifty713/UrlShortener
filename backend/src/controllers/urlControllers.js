@@ -2,6 +2,7 @@ import { Url } from "../models/urlModel.js";
 import urlRouter from "../routes/urlRoutes.js";
 import { nanoid } from "nanoid";
 import qrcode from "qrcode";
+import rateLimit from "express-rate-limit";
 
 const createAlias =async (req, res)=>{
     try {
@@ -35,17 +36,6 @@ const createAlias =async (req, res)=>{
             if (new Date(expiryDate) < today){
                 return(res.status(400).json({message:"Return a date that's from today upwards."}))
             }
-        }
-
-        // Creating limit for number of links made to a url
-        const numOfLinks = await Url.find({originalURL: formattedUrl});
-        if (numOfLinks.length > 2){
-            const container = [];
-            numOfLinks.map(link=>{
-                const linkURL = `www.${link.alias}.ping`;
-                container.push(linkURL);
-            })
-            return(res.status(429).json({message:`Too many exact request, limit caps at 3 aliases for each URL. Those 3 aliases url are ${container}.`}))
         }
 
         // Custom Alias Verification 
@@ -94,6 +84,13 @@ const createAlias =async (req, res)=>{
     }    
 }
 
+// rate limiter for creating url
+const rateLimiterCreateEndpoint = rateLimit({
+    windowMs: 30 * 60 * 1000,
+    limit: 10,
+    message: "Too many requests."
+})
+
 const redirectUrl= async(req, res)=>{
     try {
         //fetch the original url connected to the url and also verify if alias is valid 
@@ -132,4 +129,9 @@ const passwordRedirect =async(req, res)=>{
         res.status(500).json({message:"Internal Server Error.", error:err.message});
     }   
 }
-export {createAlias, redirectUrl, passwordRedirect};
+const rateLimiterPwdEndpoint = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    limit: 5,
+    message: "Too many tries on password."
+})
+export {createAlias, rateLimiterCreateEndpoint, redirectUrl, rateLimiterPwdEndpoint, passwordRedirect};
