@@ -28,6 +28,9 @@ const urlSchema = new Schema({
         type: Number,
         default: 0
     },
+    isLoginnedIn:{
+        type: Boolean
+    }
 },
 {timestamps:true}
 )

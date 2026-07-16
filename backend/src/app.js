@@ -1,5 +1,5 @@
 import express from "express";
-import urlRouter from "./routes/urlRoutes.js";
+import urlRouter from "./routes/visitorUrlRoutes.js";
 import clickRateRouter from "./routes/clickRateRoutes.js";
 import dotenv from "dotenv";
 

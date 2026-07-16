@@ -1,5 +1,5 @@
 import { Url } from "../models/urlModel.js";
-import urlRouter from "../routes/urlRoutes.js";
+import urlRouter from "../routes/visitorUrlRoutes.js";
 import { nanoid } from "nanoid";
 import qrcode from "qrcode";
 import rateLimit from "express-rate-limit";
@@ -70,6 +70,7 @@ const createAlias =async (req, res)=>{
         }
         // create record
         const url = await Url.create({
+            userId: user._id,
             originalURL: formattedUrl,
             alias,
             expiryDate, 
@@ -90,6 +91,10 @@ const rateLimiterCreateEndpoint = rateLimit({
     limit: 10,
     message: "Too many requests."
 })
+
+const registeredUserAction = async(req, res)=>{
+
+}
 
 const redirectUrl= async(req, res)=>{
     try {
