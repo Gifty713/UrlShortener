@@ -3,15 +3,6 @@ import bcrypt from "bcrypt"
 
 const ownerSchema = new Schema(
     {
-        username:{
-            type: String,
-            required: true,
-            unique: true,
-            lowercase: true,    
-            trim: true,
-            minLen: 1,
-            maxLen: 30,
-        },
         password:{
             type: String,
             required: true,
@@ -35,7 +26,7 @@ ownerSchema.pre("save", async function(){
     if(!this.isModified("password")){
         return;
     }
-    const hashed_pwd = await bcrypt.hash(this.password, 10);
+    this.password = await bcrypt.hash(this.password, 10);
 }); 
 // compare passwords function
 ownerSchema.methods.comparePassword = async function (password) {

@@ -6,8 +6,7 @@ import rateLimit from "express-rate-limit";
 
 const createAlias =async (req, res)=>{
     try {
-        const {originalURL,customAlias,password,expiryDate, isQrcode} = req.body;
-
+        const {originalURL,customAlias,password,expiryDate, isQrcode} = req.body; 
         // Validation for url
         if (!originalURL){
             return(res.status(400).json({message:"You need to fill in a URL"}));
@@ -68,15 +67,18 @@ const createAlias =async (req, res)=>{
         if(isQrcode){
             qrData = await qrcode.toDataURL(originalURL);
         }
+        
         // create record
         const url = await Url.create({
-            userId: user._id,
             originalURL: formattedUrl,
             alias,
             expiryDate, 
             password,
             clickCount: 0
         })
+
+        // When users are logged out and they create alias they should be saved in the local Storage
+        // localStorage.setItem("urlId", url._id);
 
         res.status(201).json({message:`Url successfully registered, here is your shortened url /${alias}`, url, qrData})
            

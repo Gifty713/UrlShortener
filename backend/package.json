@@ -19,6 +19,7 @@
     "express-rate-limit": "^8.5.2",
     "geoip-country": "^5.0.202607110104",
     "ioredis": "^5.11.1",
+    "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.7.4",
     "nanoid": "^5.1.16",
     "nodemon": "^3.1.14",
