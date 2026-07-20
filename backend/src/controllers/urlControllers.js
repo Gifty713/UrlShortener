@@ -54,7 +54,7 @@ const createAlias =async (req, res)=>{
         };
 
         // Create Alias
-        const alias = verCustomAlias || nanoid(5);
+        let alias = verCustomAlias || nanoid(5);
         // check if alias is taken
         let existing = await Url.findOne({alias: alias});
         while (existing){
@@ -77,9 +77,6 @@ const createAlias =async (req, res)=>{
             clickCount: 0
         })
 
-        // When users are logged out and they create alias they should be saved in the local Storage
-        // localStorage.setItem("urlId", url._id);
-
         res.status(201).json({message:`Url successfully registered, here is your shortened url /${alias}`, url, qrData})
            
     } catch (error) {
@@ -94,9 +91,6 @@ const rateLimiterCreateEndpoint = rateLimit({
     message: "Too many requests."
 })
 
-const registeredUserAction = async(req, res)=>{
-
-}
 
 const redirectUrl= async(req, res)=>{
     try {
@@ -141,4 +135,12 @@ const rateLimiterPwdEndpoint = rateLimit({
     limit: 5,
     message: "Too many tries on password."
 })
+
+const getUrls =async(req, res)=>{
+    try {
+        
+    } catch (error) {
+        res.status(500).json({message:"Internal server error.", error:error.message});
+    }
+}
 export {createAlias, rateLimiterCreateEndpoint, redirectUrl, rateLimiterPwdEndpoint, passwordRedirect};
