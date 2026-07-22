@@ -1,6 +1,6 @@
 import { getAccessToken } from '../Services/authService'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000'
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 export async function fetchCreateAlias({ originalURL, customAlias, expiryDate }) {
   const accessToken = getAccessToken()
