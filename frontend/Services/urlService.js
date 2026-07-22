@@ -23,7 +23,7 @@ export async function removeUrlPassword(alias) { return request(`resetpassword/$
 export async function getAnalytics() { return request('analytics') }
 
 async function publicRequest(path, options = {}) {
-  const response = await fetch(`${API_BASE_URL}/api/v1/url/${path}`, { ...options, headers: { 'Content-Type': 'application/json', ...options.headers } })
+  const response = await fetch(`/api/v1/url/${path}`, { ...options, headers: { 'Content-Type': 'application/json', ...options.headers } })
   const data = await response.json().catch(() => ({}))
   if (!response.ok) {
     const error = new Error(data.message || 'We could not open this link.')
@@ -32,7 +32,7 @@ async function publicRequest(path, options = {}) {
   }
   return data
 }
-export function getRedirectUrl(alias, optIn) { return `${API_BASE_URL}/api/v1/url/redirect/${encodeURIComponent(alias)}${optIn ? '?optIn=true' : ''}` }
+export function getRedirectUrl(alias, optIn) { return `/api/v1/url/redirect/${encodeURIComponent(alias)}${optIn ? '?optIn=true' : ''}` }
 export function resolveShortUrl(alias) { return publicRequest(`resolve/${encodeURIComponent(alias)}`) }
 export function requestRedirectDestination(alias, optIn) { return publicRequest(`redirect/${encodeURIComponent(alias)}?mode=json${optIn ? '&optIn=true' : ''}`) }
 export function verifyShortUrlPassword(alias, password, optIn) { return publicRequest(`pwdredirect/${encodeURIComponent(alias)}/pwd?mode=json${optIn ? '&optIn=true' : ''}`, { method: 'POST', body: JSON.stringify({ password }) }) }
