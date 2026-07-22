@@ -1,8 +1,9 @@
 import { Url } from "../models/urlModel.js";
-import urlRouter from "../routes/visitorUrlRoutes.js";
+import urlRouter from "../routes/urlRoutes.js";
 import { nanoid } from "nanoid";
 import qrcode from "qrcode";
 import rateLimit from "express-rate-limit";
+import { Owner } from "../models/ownerModel.js";
 
 const createAlias =async (req, res)=>{
     try {
@@ -61,26 +62,34 @@ const createAlias =async (req, res)=>{
             alias = nanoid(5);
             existing = await Url.findOne({alias: alias})
         }
-
-        // Create qrcode
-        let qrData = "No qrcode requested";
-        if(isQrcode){
-            qrData = await qrcode.toDataURL(originalURL);
-        }
         
-        // create record
-        const url = await Url.create({
-            originalURL: formattedUrl,
-            alias,
-            expiryDate, 
-            password,
-            clickCount: 0
-        })
-
-        res.status(201).json({message:`Url successfully registered, here is your shortened url /${alias}`, url, qrData})
+        let url;
+        if (!req.user){
+            // url for visitors
+            url = await Url.create({
+                originalURL: formattedUrl,
+                alias,
+                expiryDate, 
+            })            
+        }else{
+            const userId = req.user;
+            // url for users
+            url = await Url.create({
+                userId: userId , 
+                originalURL: formattedUrl,
+                alias,
+                expiryDate, 
+                password,
+                clickCount: 0
+            })
+        }
+        const safeUrl = url.toObject();
+        const passwordProtected = Boolean(safeUrl.password);
+        delete safeUrl.password;
+        res.status(201).json({message:`Url successfully registered, here is your shortened url /${alias}`, url: { ...safeUrl, passwordProtected }})
            
     } catch (error) {
-        res.status(500).json({message:"Internal server error.", error:error.message});
+        res.status(500).json({message:"Error in creating alias", error:error.message});
     }    
 }
 
@@ -95,7 +104,7 @@ const rateLimiterCreateEndpoint = rateLimit({
 const redirectUrl= async(req, res)=>{
     try {
         //fetch the original url connected to the url and also verify if alias is valid 
-        const url = await Url.findOne({alias:req.params.alias}); 
+        const url = await Url.findOne({alias:req.params.alias});
         if(!url){
             return(res.status(404).json({message:"This alias was not found on our database."}));
         }
@@ -104,10 +113,11 @@ const redirectUrl= async(req, res)=>{
         if (PasswordProtected){
             return(res.status(401).json({message:"Page is password protected."}));
         }
-        await Url.findOneAndUpdate({alias:req.params.alias}, {$inc:{clickCount: 1}}, {new:true});
+        await Url.findOneAndUpdate({alias:req.params.alias}, {$inc:{clickCount: 1}}, {returnDocument: 'after'});
+        if (req.query.mode === "json") return res.json({ redirectUrl: url.originalURL });
         res.redirect(`${url.originalURL}`);
     } catch (err) {
-        res.status(500).json({message:"Internal server error.", error:err.message});
+        res.status(500).json({message:"Redirect error.", error:err.message});
     }
 }
 
@@ -124,10 +134,11 @@ const passwordRedirect =async(req, res)=>{
         if (!isMatch){
             return(res.status(401).json({message:"Incorrect password."}));
         }
-        await Url.findOneAndUpdate({alias:req.params.alias},{$inc:{clickCount:1}}, {new:true});
+        await Url.findOneAndUpdate({alias:req.params.alias},{$inc:{clickCount:1}}, {returnDocument: 'after'});
+        if (req.query.mode === "json") return res.json({ redirectUrl: url.originalURL });
         res.redirect(`${url.originalURL}`);
     } catch (err) {
-        res.status(500).json({message:"Internal Server Error.", error:err.message});
+        res.status(500).json({message:"Redirect error.", error:err.message});
     }   
 }
 const rateLimiterPwdEndpoint = rateLimit({
@@ -136,11 +147,78 @@ const rateLimiterPwdEndpoint = rateLimit({
     message: "Too many tries on password."
 })
 
-const getUrls =async(req, res)=>{
+const getUrls = async(req, res)=>{
     try {
-        
+        const userId = req.user;
+        if (userId == null) return res.status(401).json({message:"This user is unauthorized to get urls."});
+        const userUrls = await Url.find({userId: userId});
+        const safeUrls = userUrls.map(url => {
+            const { password, ...safeUrl } = url.toObject();
+            return { ...safeUrl, passwordProtected: Boolean(password) };
+        });
+        res.status(200).json({message:"User url info, gotten.", userUrls: safeUrls});
     } catch (error) {
-        res.status(500).json({message:"Internal server error.", error:error.message});
+        res.status(500).json({message:"Error in fetching url information.", error:error.message});
     }
 }
-export {createAlias, rateLimiterCreateEndpoint, redirectUrl, rateLimiterPwdEndpoint, passwordRedirect};
+
+const resolveUrl = async (req, res) => {
+    try {
+        const url = await Url.findOne({ alias: req.params.alias }).select("alias password");
+        if (!url) return res.status(404).json({ message: "This link could not be found." });
+        res.json({ alias: url.alias, passwordProtected: Boolean(url.password) });
+    } catch (error) {
+        res.status(500).json({ message: "Unable to resolve this link." });
+    }
+};
+
+const generateQrCode=async(req, res)=>{
+    try {
+        const url = await Url.findOne({alias: req.params.alias, userId: req.user});
+        if(!url)return res.status(404).json({message:"Url not found."});     
+        const qrData = await qrcode.toDataURL(url.originalURL);
+        res.status(201).json({message:"QrCode successfully created", qrData});
+    } catch (error) {
+        res.status(500).json({message:"Error in generating qr code.", error:error.message});
+    }
+}
+
+const deleteUrlAlias =async(req, res)=>{
+    try {
+        const url = await Url.findOneAndDelete({alias: req.params.alias, userId: req.user});
+        if(!url)return res.status(404).json({message:"Url not found."});
+        res.status(204).json({message:"Successfully deleted."});
+    } catch (error) {
+        res.status(500).json({message:"Error in deleting alias.", error:error.message});
+    }
+}
+
+const resetPassword=async(req, res)=>{
+    try {
+        const {password} = req.body;
+        const url = await Url.findOne({alias:req.params.alias, userId: req.user});
+        // validate url
+        if(!url) return res.status(404).json({message:"Url not found."});
+        // set new password
+        url.password = password;
+        await url.save();
+
+        res.status(201).json({message: "Password reset!"});
+    } catch (error) {
+        res.status(500).json({message:"Error in resetting password.", error:error.message});
+    }
+}
+const removePassword = async (req, res) => {
+    try {
+        const url = await Url.findOneAndUpdate(
+            { alias: req.params.alias, userId: req.user },
+            { $unset: { password: 1 } },
+            { new: true }
+        );
+        if (!url) return res.status(404).json({ message: "Url not found." });
+        res.json({ message: "Password removed.", alias: url.alias, passwordProtected: false });
+    } catch (error) {
+        res.status(500).json({ message: "Error in removing password.", error: error.message });
+    }
+}
+export {createAlias, rateLimiterCreateEndpoint, redirectUrl, passwordRedirect, getUrls, resolveUrl, rateLimiterPwdEndpoint, generateQrCode, deleteUrlAlias, resetPassword, removePassword};

@@ -1,9 +1,10 @@
 import jwt from "jsonwebtoken";
 const authenticateToken =(req, res, next)=>{
     const authHeader = req.headers["authorization"];
-    // No token
+    // this is going to be used by visitors, so there should be provision for them
     if (!authHeader){
-        return res.status(401).json({message: "Unauthorized user."});
+        req.userId = null;
+        return next();
     }   
     const token = authHeader.split(" ")[1];
     if (!token) {
@@ -15,13 +16,18 @@ const authenticateToken =(req, res, next)=>{
             if(err.name === "TokenExpiredError") return res.status(401).json({message:"Expired access token"});
             return res.status(403).json({message:"Access Denied"})
         }
-        req.user = decoded;
+        req.user = decoded.id;
         next();
     });
 }
 
-const generateToken = (email)=>{
-    return jwt.sign(email, process.env.ACCESS_TOKEN_SECRET, {expiresIn:"60s"});
+const generateToken = (id)=>{
+    return jwt.sign(id, process.env.ACCESS_TOKEN_SECRET, {expiresIn:"15m"});
 }
 
-export {authenticateToken, generateToken};
+const requireAuthenticatedUser = (req, res, next) => {
+    if (!req.user) return res.status(401).json({ message: "Unauthorized user." });
+    next();
+}
+
+export {authenticateToken, requireAuthenticatedUser, generateToken};

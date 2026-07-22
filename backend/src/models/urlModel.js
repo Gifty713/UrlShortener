@@ -2,6 +2,9 @@ import mongoose, {Schema} from "mongoose";
 import bcrypt from "bcrypt";
 
 const urlSchema = new Schema({
+    userId:{
+        type: mongoose.Schema.Types.ObjectId
+    },
     originalURL:{
         type: String,   
         required: true,
@@ -20,17 +23,11 @@ const urlSchema = new Schema({
         required: true,
         unique: true
     },
-    isQrcode :{
-        type:Boolean
-    },
     // clickCount is total clickCount
     clickCount:{
         type: Number,
         default: 0
     },
-    isLoginnedIn:{
-        type: Boolean
-    }
 },
 {timestamps:true}
 )

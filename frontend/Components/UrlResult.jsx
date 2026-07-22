@@ -1,0 +1,2 @@
+import { useState } from 'react'; import { Alert, Button, Link, Stack } from '@mui/material'
+function UrlResult({url}){const [copied,setCopied]=useState(false);async function copy(){await navigator.clipboard?.writeText(url);setCopied(true);setTimeout(()=>setCopied(false),1800)}return <Alert severity="success" sx={{width:'min(720px,100%)',mt:3}} action={<Button onClick={copy}>{copied?'Copied':'Copy link'}</Button>}><Stack><span>Your short link is ready</span><Link href={url} color="primary" fontWeight={800}>{url}</Link></Stack></Alert>};export default UrlResult

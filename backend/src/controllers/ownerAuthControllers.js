@@ -3,6 +3,12 @@ import { refreshTokenModel } from "../models/refreshToken.js";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { generateToken } from "../middleware/jsonAuth.js";
+const refreshCookieName = "refreshToken";
+const refreshCookieOptions = () => {
+    const sameSite = process.env.COOKIE_SAME_SITE || "lax";
+    return { httpOnly: true, secure: sameSite === "none" || process.env.NODE_ENV === "production", sameSite, path: "/api/v1/auth", maxAge: 4 * 24 * 60 * 60 * 1000 };
+};
+const readRefreshCookie = (req) => req.headers.cookie?.split(";").map(value => value.trim()).find(value => value.startsWith(`${refreshCookieName}=`))?.slice(refreshCookieName.length + 1);
 const registerUser = async(req, res)=>{
     try {
         const {password, email} = req.body;
@@ -46,11 +52,11 @@ const loginUser = async(req, res)=>{
         }
 
         // Authenticate and generate access token
-        const authEmail = ({email:email.toLowerCase()});
-        const accessToken = generateToken(authEmail);
+        const authId = ({id:owner._id});
+        const accessToken = generateToken(authId);
 
         // create refresh token
-        const refreshToken = jwt.sign(authEmail, process.env.REFRESH_TOKEN_SECRET, {expiresIn:"4d"});
+        const refreshToken = jwt.sign(authId, process.env.REFRESH_TOKEN_SECRET, {expiresIn:"4d"});
 
         // Hash refresh token, set expiryDate and get user id
         const tokenHashed = crypto.hash("sha256", refreshToken, "hex");
@@ -59,10 +65,10 @@ const loginUser = async(req, res)=>{
 
         // Add token to database
         const userId = owner._id;
-        const refToken = await refreshTokenModel.create({userId, tokenHashed, expiresAt:expiryDate});
+        await refreshTokenModel.create({userId, tokenHashed, expiresAt:expiryDate});
 
-        // send respond
-        res.json({accessToken, refreshToken});
+        res.cookie(refreshCookieName, refreshToken, refreshCookieOptions());
+        res.json({accessToken});
     } catch (err) {
         return res.status(500).json({message:"Internal Server Error", error:`Error:${err}`})
     }
@@ -71,7 +77,7 @@ const loginUser = async(req, res)=>{
 
 const refreshToken= async(req, res)=>{
     try {
-        const {token} = req.body;
+        const token = readRefreshCookie(req);
         // validate refresh token
         if (!token) return res.status(401).json({message:"Unauthorized user."});
         // hash given token and verify if in database
@@ -81,7 +87,7 @@ const refreshToken= async(req, res)=>{
         // verify token
         jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, (err, user)=>{
             if(err) return res.status(403).json({message:"Access denied. Refresh token expired."});
-            const accessToken = generateToken({email: user.email.toLowerCase()});
+            const accessToken = generateToken({id:user.id});
             // create new access token
             res.json({accessToken: accessToken});
         });        
@@ -92,15 +98,12 @@ const refreshToken= async(req, res)=>{
 
 const logOut = async(req, res)=>{
     try {
-        const {email} = req.body;
-        if (!email) return res.status(401).json({message:"Fill in all information please"});
-        
-        const owner = await Owner.findOne({email: email.toLowerCase()})  
-        
-        if(!owner) return res.status(404).json({message:"User not found, try again."})
-
-        const ownerId = owner._id;
-        await refreshTokenModel.findOneAndDelete({userId: ownerId});
+        const token = readRefreshCookie(req);
+        if (token) {
+            const tokenHashed = crypto.hash("sha256", token, "hex");
+            await refreshTokenModel.findOneAndDelete({tokenHashed});
+        }
+        res.clearCookie(refreshCookieName, refreshCookieOptions());
         
         res.status(200).json({message:"Logout Successful"})
 
