@@ -336,7 +336,7 @@ footer span {
   font-size: .85rem;
   line-height: 1.5;
 }
-@media (max-width: 480px) {
+/* @media (max-width: 480px) {
   .navbar {
     padding: 14px 16px;
   }
@@ -369,7 +369,7 @@ footer span {
   .modal {
     padding: 28px 18px 18px;
   }
-}
+} */
 
 .dashboard-nav { width: min(1180px, 100%); margin: 0 auto; padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; }
 .dashboard-nav nav { gap: 4px; }
@@ -385,4 +385,37 @@ footer span {
 .panel { padding: 20px; margin-bottom: 20px; }.panel-heading { display: flex; justify-content: space-between; align-items: start; gap: 12px; margin-bottom: 18px; }.panel h2 { margin: 5px 0 0; font-size: 1.25rem; letter-spacing: -.04em; }.panel-heading .text-button { color: var(--plum); min-height: 34px; }
 .url-list { display: grid; gap: 0; }.url-row { display: grid; grid-template-columns: minmax(200px, 1.45fr) 1fr auto; align-items: center; gap: 18px; padding: 16px 0; border-top: 1px solid var(--line); }.url-main p { color: var(--muted); font-size: .76rem; margin: 5px 0 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }.url-meta { display: flex; gap: 18px; }.url-meta span { display: grid; gap: 3px; color: var(--muted); font-size: .72rem; }.url-meta b { color: var(--ink); font-size: .65rem; text-transform: uppercase; letter-spacing: .06em; }.secondary-button { min-height: 38px; border: 1px solid var(--line); color: var(--plum); border-radius: 9px; background: #fff; font-size: .74rem; font-weight: 800; padding: 0 10px; }.placeholder-note { color: var(--muted); font-size: .75rem; margin: 15px 0 0; }
 .analytics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }.trend-total { color: #357951; font-weight: 800; }.chart { height: 205px; display: flex; align-items: end; gap: 6px; border-bottom: 1px solid var(--line); padding: 0 4px; }.bar { flex: 1; min-height: 8px; border-radius: 5px 5px 0 0; background: var(--plum); position: relative; opacity: .85; }.bar:hover { opacity: 1; }.bar span { display: none; position: absolute; top: -22px; left: 50%; transform: translateX(-50%); font-size: .65rem; }.bar:hover span { display: block; }.breakdown-row, .link-performance { display: grid; grid-template-columns: 80px 1fr 38px; gap: 10px; align-items: center; font-size: .78rem; padding: 12px 0; }.progress { height: 7px; background: #f1e8e3; border-radius: 10px; overflow: hidden; }.progress i { display: block; height: 100%; background: var(--plum); border-radius: inherit; }.breakdown-row b, .link-performance b { font-size: .7rem; text-align: right; }.link-performance { grid-template-columns: 150px 1fr 82px; border-top: 1px solid var(--line); }.link-performance span { color: var(--plum); font-weight: 800; }
-@media (max-width: 720px) { .dashboard-nav { padding: 14px 16px; align-items: flex-start; }.dashboard-nav nav { flex-wrap: wrap; justify-content: flex-end; }.dashboard-nav .button-small { width: auto; }.dashboard { padding: 28px 16px 45px; }.dashboard-intro { align-items: flex-start; flex-direction: column; }.stat-grid { grid-template-columns: 1fr 1fr; }.url-row { grid-template-columns: 1fr; gap: 12px; }.url-meta { justify-content: space-between; }.secondary-button { width: 100%; }.analytics-grid { grid-template-columns: 1fr; }.link-performance { grid-template-columns: 90px 1fr 70px; } }
+@media (max-width: 720px) { 
+  .navbar {
+    padding: 14px 16px;
+  }
+  .text-button {
+    padding: 0 10px;
+  }
+  .button-small {
+    padding: 0 12px;
+  }
+  .hero-section {
+    padding: 55px 16px 32px;
+  }
+  .url-control {
+    flex-direction: column;
+    padding: 7px;
+  }
+  .url-control .button {
+    width: 100%;
+  }
+  .result {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .result > div {
+    width: calc(100% - 40px);
+  }
+  .copy-button {
+    margin-left: 37px;
+  }
+  .modal {
+    padding: 28px 18px 18px;
+  }  
+  .dashboard-nav { padding: 14px 16px; align-items: flex-start; }.dashboard-nav nav { flex-wrap: wrap; justify-content: flex-end; }.dashboard-nav .button-small { width: auto; }.dashboard { padding: 28px 16px 45px; }.dashboard-intro { align-items: flex-start; flex-direction: column; }.stat-grid { grid-template-columns: 1fr 1fr; }.url-row { grid-template-columns: 1fr; gap: 12px; }.url-meta { justify-content: space-between; }.secondary-button { width: 100%; }.analytics-grid { grid-template-columns: 1fr; }.link-performance { grid-template-columns: 90px 1fr 70px; } }
