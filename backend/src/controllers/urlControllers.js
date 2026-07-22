@@ -213,7 +213,7 @@ const removePassword = async (req, res) => {
         const url = await Url.findOneAndUpdate(
             { alias: req.params.alias, userId: req.user },
             { $unset: { password: 1 } },
-            { new: true }
+            { returnDocument: 'after' }
         );
         if (!url) return res.status(404).json({ message: "Url not found." });
         res.json({ message: "Password removed.", alias: url.alias, passwordProtected: false });

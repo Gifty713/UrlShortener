@@ -1,7 +1,5 @@
 import { clearAuth, getAccessToken, refreshAccessToken } from './authService'
 
-const API_BASE_URL = "";
-
 async function request(path, options = {}, retry = true) {
   const token = getAccessToken()
   const response = await fetch(`/api/v1/url/${path}`, {
