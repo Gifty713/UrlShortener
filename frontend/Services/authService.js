@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000'
+const API_BASE_URL = "";
 
 // Tokens deliberately live only for the lifetime of this JavaScript runtime.
 // Remove credentials written by earlier frontend versions; userId remains reserved

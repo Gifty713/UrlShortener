@@ -1,6 +1,6 @@
 import { clearAuth, getAccessToken, refreshAccessToken } from './authService'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000'
+const API_BASE_URL = "";
 
 async function request(path, options = {}, retry = true) {
   const token = getAccessToken()
