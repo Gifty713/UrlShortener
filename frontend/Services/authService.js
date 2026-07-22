@@ -10,7 +10,7 @@ localStorage.removeItem('userEmail')
 let accessToken = null
 
 async function authRequest(path, payload) {
-  const response = await fetch(`${API_BASE_URL}/api/v1/auth/${path}`, {
+  const response = await fetch(`/api/v1/auth/${path}`, {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },

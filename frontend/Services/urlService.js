@@ -4,7 +4,7 @@ const API_BASE_URL = "";
 
 async function request(path, options = {}, retry = true) {
   const token = getAccessToken()
-  const response = await fetch(`${API_BASE_URL}/api/v1/url/${path}`, {
+  const response = await fetch(`/api/v1/url/${path}`, {
     ...options,
     headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}), ...options.headers },
   })

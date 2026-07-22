@@ -4,7 +4,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 export async function fetchCreateAlias({ originalURL, customAlias, expiryDate }) {
   const accessToken = getAccessToken()
-  const response = await fetch(`${API_BASE_URL}/api/v1/url/createalias`, {
+  const response = await fetch(`/api/v1/url/createalias`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
